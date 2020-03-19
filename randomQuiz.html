@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Random Quiz App -- by Pankaj Shukla</title>
+	<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+</head>
+<body>
+<div id="time">Here timer will start </div>
+<form id="sub" action="#" method="POST">
+<div id="disp"> Here will be quiz data</div>
+
+<ol id ="ques" >
+
+
+
+</ol>
+<input type="submit" name="submit">
+	
+</form>
+
+
+<button name="quiz"  id="get">GET Questions</button><br>
+<div id="resultDisp"></div>
+
+</body>
+<script type="text/javascript">
+	
+		$("document").ready(function(){
+			// timer variable
+			 var state="off";
+  			 var dtime;
+             var deadtime;
+             var setTimer;
+
+
+			
+			// get the element
+			var questions;
+
+			$("#get").click(function(){
+				$("#get").hide();
+				$.getJSON("https://opentdb.com/api.php?amount=5&category=18")
+				.done(function(data){
+					// convert the data
+					 questions=data.results
+					questions.forEach(function(question,index){
+						// take each object data
+						var statement="<li>";
+						statement+=question.question;
+						var options="<ul>";
+						// get all answers in option array
+						var choices=question.incorrect_answers;
+						choices.push(question.correct_answer);
+						choices.sort(()=>Math.random()-0.5);
+						choices.forEach(function(choice){
+							options+="<input type='radio' required  name='choice"+(index+1)+"' value='"+choice+"'><span id='ch"+(index+1)+choice.split(" ").join("")+"'>"+choice+"</span><br>";
+
+						});
+						statement+=options;
+						statement+="</li>"
+
+						$("#ques").append(statement);
+						
+
+					})
+
+					// start the timer 
+
+					  						    if (state==="off") {
+						        console.log($("#time").text("timer started"))
+						        state="on";
+						        dtime=(new Date())
+						        deadtime=dtime.getTime()+600000;
+						        console.log(dtime);
+						          if(dtime && deadtime){
+						           setTimer=setInterval(()=>{
+						                  dtime=new Date();
+						                  console.log(deadtime-dtime);
+						                  if(dtime.getTime()>=deadtime){
+						                      state="off"
+						                     if(state=="off") clearTimeout(setTimer);
+						                      alert("time out please refresh to attempt again !!");
+						                  }
+						                  else{
+						                    var minutes=parseInt((deadtime-dtime)/60000)
+						                    var seconds=parseInt(((deadtime-dtime)%60000)/600)
+						                    
+						                    $("#time").text(minutes +" : "+seconds);
+						                  }
+						          },100);
+						          
+						      }
+						      else{
+						        console.log("didn't set")
+						      }
+						        }
+						    else {
+						          $("#time").text("timer already set");
+
+						      }
+				      
+
+
+
+					$("#disp").text(data.results[0].category);
+				})
+				.fail(function(){
+					alert("failed to process request");
+				})
+
+			});
+
+			$("#sub").submit(function(event){
+				
+				event.preventDefault();
+				var total_Score=0;
+
+				questions.forEach((question,index)=>{
+					// verify answer
+					var c="choice"+(index+1);
+					var user_choice=$('input[name="'+c+'"]:checked').val();
+					
+					if(questions[index].correct_answer==(user_choice).toString()){
+						$("#ch"+(index+1)+user_choice.split(" ").join("")).css({"background-color":"green"});
+						total_Score++;
+
+					}
+					else{
+						$("#ch"+(index+1)+user_choice.split(" ").join("")).css({"background-color":"red"});
+					}
+
+				})
+
+				// stop the timer
+				  
+							     if(state==="on"){
+							          state="off"
+							          // dtime=undefined;
+							          // deadtime=undefined;
+							          clearTimeout(setTimer);
+							        console.log($("#time").text("timer stopped"))
+							     } else{
+							              $("#time").text("start the timer");
+							     }
+							 
+
+
+
+				// display total score
+				 $("#disp").text("Total score :--->"+total_Score);
+				 $("#disp").append("<br> refresh to restart the quiz</br>")
+				 
+
+
+			})
+
+
+
+		})
+
+
+</script>
+
+</html>
